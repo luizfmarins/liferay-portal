@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -31,6 +33,21 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author Máté Thurzó
  */
 public class CTConfigurationRegistryUtil {
+
+	@SuppressWarnings("unchecked")
+	public static List<String> getContentTypeLanguageKeys() {
+		List<String> contentTypeLanguageKeys = new ArrayList<>();
+
+		List<CTConfiguration<?, ?>> ctConfigurations =
+			_getCTConfigurationRegistry().getAllCTConfigurations();
+
+		for (CTConfiguration ctConfiguration : ctConfigurations) {
+			contentTypeLanguageKeys.add(
+				ctConfiguration.getContentTypeLanguageKey());
+		}
+
+		return contentTypeLanguageKeys;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static String getVersionEntityContentTypeLanguageKey(
