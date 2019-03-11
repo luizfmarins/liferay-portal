@@ -33,6 +33,16 @@ import org.osgi.util.tracker.ServiceTracker;
 public class CTConfigurationRegistryUtil {
 
 	@SuppressWarnings("unchecked")
+	public static String getVersionEntityContentTypeLanguageKey(
+		long classNameId) {
+
+		CTConfiguration<?, ?> ctConfiguration = _getCTConfiguration(
+			classNameId);
+
+		return ctConfiguration.getContentTypeLanguageKey();
+	}
+
+	@SuppressWarnings("unchecked")
 	public static long getVersionEntityGroupId(long classNameId, long classPK) {
 		CTConfiguration<?, ?> ctConfiguration = _getCTConfiguration(
 			classNameId);
@@ -50,16 +60,6 @@ public class CTConfigurationRegistryUtil {
 		}
 
 		return BeanPropertiesUtil.getLongSilent(versionEntity, "groupId");
-	}
-
-	@SuppressWarnings("unchecked")
-	public static String getVersionEntityContentTypeLanguageKey(
-		long classNameId) {
-
-		CTConfiguration<?, ?> ctConfiguration = _getCTConfiguration(
-			classNameId);
-
-		return ctConfiguration.getContentTypeLanguageKey();
 	}
 
 	@SuppressWarnings("unchecked")
