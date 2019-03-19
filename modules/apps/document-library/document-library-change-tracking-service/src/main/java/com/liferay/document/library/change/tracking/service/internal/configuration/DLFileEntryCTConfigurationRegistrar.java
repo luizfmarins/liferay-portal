@@ -66,6 +66,14 @@ public class DLFileEntryCTConfigurationRegistrar {
 			).setVersionEntityByVersionEntityIdFunction(
 				_dlFileVersionLocalService::fetchDLFileVersion
 			).setVersionEntityDetails(
+				// todo: handle dependent models changes as well
+
+				// if DLFileEntry has dependencies, like document type,
+				// metadata what changes affects the file entries itself,
+				// those should be change tracked as well.
+				// And the dependency should be declared here.
+				// Please see Journal Article for more details.
+
 				null, this::_fetchGroupName, DLFileVersion::getTitle,
 				DLFileVersion::getVersion
 			).setEntityIdsFromVersionEntityFunctions(

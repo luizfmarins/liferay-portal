@@ -68,6 +68,8 @@ public class CTDLFileEntryLocalServiceWrapper
 			InputStream is, long size, ServiceContext serviceContext)
 		throws PortalException {
 
+		// todo: PortletFileRepository and other "system" entries should not be handled in CT
+
 		DLFileEntry fileEntry = _ctManager.executeModelUpdate(
 			() -> super.addFileEntry(
 				userId, groupId, repositoryId, folderId, sourceFileName,
@@ -108,6 +110,11 @@ public class CTDLFileEntryLocalServiceWrapper
 
 		return fileEntry;
 	}
+
+	// todo: wrapping the necessary getters to not just return the latest version
+
+	// Right now with the finder customisation we filter out the entries on the
+	// resource level, but display the latest versions always.
 
 	private void _registerChange(DLFileEntry fileEntry, int changeType)
 		throws PortalException {
