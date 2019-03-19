@@ -46,6 +46,7 @@ public class CTEntrySoap implements Serializable {
 		soapModel.setChangeType(model.getChangeType());
 		soapModel.setStatus(model.getStatus());
 		soapModel.setOriginalCollectionId(model.getOriginalCollectionId());
+		soapModel.setCollision(model.isCollision());
 
 		return soapModel;
 	}
@@ -195,6 +196,18 @@ public class CTEntrySoap implements Serializable {
 		_originalCollectionId = originalCollectionId;
 	}
 
+	public boolean getCollision() {
+		return _collision;
+	}
+
+	public boolean isCollision() {
+		return _collision;
+	}
+
+	public void setCollision(boolean collision) {
+		_collision = collision;
+	}
+
 	private long _ctEntryId;
 	private long _companyId;
 	private long _userId;
@@ -207,5 +220,6 @@ public class CTEntrySoap implements Serializable {
 	private int _changeType;
 	private int _status;
 	private long _originalCollectionId;
+	private boolean _collision;
 
 }

@@ -28,6 +28,7 @@
 		<field name="changeType" type="int" />
 		<field name="status" type="int" />
 		<field name="originalCollectionId" type="long" />
+		<field name="collision" type="boolean" />
 	</model>
 	<model name="com.liferay.change.tracking.model.CTEntryAggregate">
 		<field name="ctEntryAggregateId" type="long" />
