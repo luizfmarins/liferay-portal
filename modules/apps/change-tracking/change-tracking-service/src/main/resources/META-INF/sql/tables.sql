@@ -39,7 +39,8 @@ create table CTEntry (
 	modelResourcePrimKey LONG,
 	changeType INTEGER,
 	status INTEGER,
-	originalCollectionId LONG
+	originalCollectionId LONG,
+	collision BOOLEAN
 );
 
 create table CTEntryAggregate (

@@ -72,7 +72,8 @@ public class CTEntryModelImpl
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
 		{"modelClassNameId", Types.BIGINT}, {"modelClassPK", Types.BIGINT},
 		{"modelResourcePrimKey", Types.BIGINT}, {"changeType", Types.INTEGER},
-		{"status", Types.INTEGER}, {"originalCollectionId", Types.BIGINT}
+		{"status", Types.INTEGER}, {"originalCollectionId", Types.BIGINT},
+		{"collision", Types.BOOLEAN}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -91,10 +92,11 @@ public class CTEntryModelImpl
 		TABLE_COLUMNS_MAP.put("changeType", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("status", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("originalCollectionId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("collision", Types.BOOLEAN);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CTEntry (ctEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,modelClassNameId LONG,modelClassPK LONG,modelResourcePrimKey LONG,changeType INTEGER,status INTEGER,originalCollectionId LONG)";
+		"create table CTEntry (ctEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,modelClassNameId LONG,modelClassPK LONG,modelResourcePrimKey LONG,changeType INTEGER,status INTEGER,originalCollectionId LONG,collision BOOLEAN)";
 
 	public static final String TABLE_SQL_DROP = "drop table CTEntry";
 
@@ -315,6 +317,9 @@ public class CTEntryModelImpl
 		attributeSetterBiConsumers.put(
 			"originalCollectionId",
 			(BiConsumer<CTEntry, Long>)CTEntry::setOriginalCollectionId);
+		attributeGetterFunctions.put("collision", CTEntry::getCollision);
+		attributeSetterBiConsumers.put(
+			"collision", (BiConsumer<CTEntry, Boolean>)CTEntry::setCollision);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -493,6 +498,21 @@ public class CTEntryModelImpl
 		_originalCollectionId = originalCollectionId;
 	}
 
+	@Override
+	public boolean getCollision() {
+		return _collision;
+	}
+
+	@Override
+	public boolean isCollision() {
+		return _collision;
+	}
+
+	@Override
+	public void setCollision(boolean collision) {
+		_collision = collision;
+	}
+
 	public long getColumnBitmask() {
 		return _columnBitmask;
 	}
@@ -537,6 +557,7 @@ public class CTEntryModelImpl
 		ctEntryImpl.setChangeType(getChangeType());
 		ctEntryImpl.setStatus(getStatus());
 		ctEntryImpl.setOriginalCollectionId(getOriginalCollectionId());
+		ctEntryImpl.setCollision(isCollision());
 
 		ctEntryImpl.resetOriginalValues();
 
@@ -661,6 +682,8 @@ public class CTEntryModelImpl
 
 		ctEntryCacheModel.originalCollectionId = getOriginalCollectionId();
 
+		ctEntryCacheModel.collision = isCollision();
+
 		return ctEntryCacheModel;
 	}
 
@@ -750,6 +773,7 @@ public class CTEntryModelImpl
 	private int _changeType;
 	private int _status;
 	private long _originalCollectionId;
+	private boolean _collision;
 	private long _columnBitmask;
 	private CTEntry _escapedModel;
 
