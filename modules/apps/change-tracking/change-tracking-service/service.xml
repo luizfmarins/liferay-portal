@@ -73,6 +73,7 @@
 		<column name="changeType" type="int" />
 		<column name="status" type="int" />
 		<column name="originalCollectionId" type="long" />
+		<column name="collision" type="boolean" />
 
 		<!-- Relationships -->
 
