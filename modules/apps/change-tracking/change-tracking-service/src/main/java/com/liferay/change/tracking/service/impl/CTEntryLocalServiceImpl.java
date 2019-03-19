@@ -133,16 +133,6 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 	}
 
 	@Override
-	public int getAffectedOwnerCTEntriesCount(long ctEntryId) {
-		QueryDefinition<CTEntry> queryDefinition = new QueryDefinition<>();
-
-		queryDefinition.setStatus(WorkflowConstants.STATUS_DRAFT);
-
-		return ctEntryFinder.countByRelatedCTEntries(
-			ctEntryId, queryDefinition);
-	}
-
-	@Override
 	public List<CTEntry> getCTCollectionCTEntries(long ctCollectionId) {
 		return getCTCollectionCTEntries(
 			ctCollectionId, WorkflowConstants.STATUS_DRAFT, QueryUtil.ALL_POS,
@@ -179,11 +169,13 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public List<CTEntry> getRelatedOwnerCTEntries(long ctEntryId) {
 		return getRelatedOwnerCTEntries(
 			ctEntryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
+	@Override
 	public List<CTEntry> getRelatedOwnerCTEntries(
 		long ctEntryId, int start, int end,
 		OrderByComparator<CTEntry> orderByComparator) {
@@ -196,6 +188,16 @@ public class CTEntryLocalServiceImpl extends CTEntryLocalServiceBaseImpl {
 		queryDefinition.setStatus(WorkflowConstants.STATUS_DRAFT);
 
 		return ctEntryFinder.findByRelatedCTEntries(ctEntryId, queryDefinition);
+	}
+
+	@Override
+	public int getRelatedOwnerCTEntriesCount(long ctEntryId) {
+		QueryDefinition<CTEntry> queryDefinition = new QueryDefinition<>();
+
+		queryDefinition.setStatus(WorkflowConstants.STATUS_DRAFT);
+
+		return ctEntryFinder.countByRelatedCTEntries(
+			ctEntryId, queryDefinition);
 	}
 
 	@Override
