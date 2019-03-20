@@ -23,11 +23,14 @@ import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceWrapper;
+import com.liferay.document.library.kernel.util.DLAppHelperThreadLocal;
 import com.liferay.dynamic.data.mapping.kernel.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.RepositoryProvider;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.service.RepositoryLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.util.Portal;
@@ -133,7 +136,7 @@ public class CTDLFileEntryLocalServiceWrapper
 			DLFileEntry fileEntry, int changeType, boolean force)
 		throws PortalException {
 
-		if (fileEntry == null) {
+		if ((fileEntry == null) || !DLAppHelperThreadLocal.isEnabled()) {
 			return;
 		}
 
@@ -185,5 +188,11 @@ public class CTDLFileEntryLocalServiceWrapper
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private RepositoryLocalService _repositoryLocalService;
+
+	@Reference
+	private RepositoryProvider _repositoryProvider;
 
 }
