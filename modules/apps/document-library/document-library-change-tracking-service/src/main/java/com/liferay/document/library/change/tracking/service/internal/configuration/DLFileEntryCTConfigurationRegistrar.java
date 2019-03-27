@@ -20,6 +20,8 @@ import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileVersionLocalService;
+import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
@@ -27,11 +29,16 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -66,8 +73,8 @@ public class DLFileEntryCTConfigurationRegistrar {
 			).setVersionEntityByVersionEntityIdFunction(
 				_dlFileVersionLocalService::fetchDLFileVersion
 			).setVersionEntityDetails(
-				null, this::_fetchGroupName, DLFileVersion::getTitle,
-				DLFileVersion::getVersion
+				Arrays.asList(_getDDMStructures()), this::_fetchGroupName,
+				DLFileVersion::getTitle, DLFileVersion::getVersion
 			).setEntityIdsFromVersionEntityFunctions(
 				DLFileVersion::getFileEntryId, DLFileVersion::getFileVersionId
 			).setVersionEntityStatusInfo(
@@ -104,6 +111,37 @@ public class DLFileEntryCTConfigurationRegistrar {
 		}
 	}
 
+	private Function<DLFileVersion, List<? extends BaseModel>>
+		_getDDMStructures() {
+
+		return dlFileVersion -> {
+			try {
+				List<DDMStructure> ddmStructures =
+					dlFileVersion.getDDMStructures();
+
+				Stream<DDMStructure> ddmStructureStream =
+					ddmStructures.stream();
+
+				return ddmStructureStream.map(
+					ddmStructure -> {
+						try {
+							return _ddmStructureLocalService.getStructure(
+								ddmStructure.getStructureId());
+						}
+						catch (PortalException pe) {
+							throw new RuntimeException(pe);
+						}
+					}
+				).collect(
+					Collectors.toList()
+				);
+			}
+			catch (PortalException pe) {
+				throw new RuntimeException(pe);
+			}
+		};
+	}
+
 	private long _versionEntityIdFromResourceEntityFunction(
 		DLFileEntry dlFileEntry) {
 
@@ -129,6 +167,9 @@ public class DLFileEntryCTConfigurationRegistrar {
 
 	@Reference
 	private CTConfigurationRegistrar _ctConfigurationRegistrar;
+
+	@Reference
+	private DDMStructureLocalService _ddmStructureLocalService;
 
 	@Reference
 	private DLFileEntryLocalService _dlFileEntryLocalService;
