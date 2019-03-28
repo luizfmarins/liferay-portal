@@ -90,6 +90,30 @@ public class CTDDMStructureLocalServiceWrapper
 	}
 
 	@Override
+	public DDMStructure addStructure(
+			long userId, long groupId, String parentStructureKey,
+			long classNameId, String structureKey, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, DDMForm ddmForm,
+			DDMFormLayout ddmFormLayout, String storageType, int type,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		DDMStructure ddmStructure = _ctManager.executeModelUpdate(
+			() -> super.addStructure(
+				userId, groupId, parentStructureKey, classNameId, structureKey,
+				nameMap, descriptionMap, ddmForm, ddmFormLayout, storageType,
+				type, serviceContext));
+
+		DDMStructureVersion ddmStructureVersion =
+			ddmStructure.getStructureVersion();
+
+		_registerChange(
+			ddmStructureVersion, CTConstants.CT_CHANGE_TYPE_ADDITION);
+
+		return ddmStructure;
+	}
+
+	@Override
 	public DDMStructure fetchStructure(long structureId) {
 		DDMStructure ddmStructure = super.fetchStructure(structureId);
 
