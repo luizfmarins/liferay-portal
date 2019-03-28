@@ -148,6 +148,11 @@ public class CTDLFileEntryLocalServiceWrapper
 				_portal.getClassNameId(DLFileVersion.class.getName()),
 				fileVersion.getFileVersionId(), fileEntry.getFileEntryId(),
 				changeType, force);
+
+			_ctManager.registerRelatedChanges(
+				PrincipalThreadLocal.getUserId(),
+				_portal.getClassNameId(DLFileVersion.class.getName()),
+				fileVersion.getFileVersionId(), force);
 		}
 		catch (CTException cte) {
 			if (cte instanceof CTEntryException) {
