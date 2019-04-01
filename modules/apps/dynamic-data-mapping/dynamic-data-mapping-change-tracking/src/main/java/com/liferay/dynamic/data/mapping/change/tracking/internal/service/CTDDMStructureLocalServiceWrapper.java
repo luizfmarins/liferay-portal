@@ -140,6 +140,19 @@ public class CTDDMStructureLocalServiceWrapper
 	}
 
 	@Override
+	public DDMStructure getStructure(long structureId) throws PortalException {
+		DDMStructure structure = super.getStructure(structureId);
+
+		if (!_ctEngineManager.isChangeTrackingEnabled(
+				structure.getCompanyId())) {
+
+			return structure;
+		}
+
+		return _populateDDMStructure(structure);
+	}
+
+	@Override
 	public List<DDMStructure> getStructures(
 		long companyId, long[] groupIds, long classNameId, int start, int end,
 		OrderByComparator<DDMStructure> orderByComparator) {

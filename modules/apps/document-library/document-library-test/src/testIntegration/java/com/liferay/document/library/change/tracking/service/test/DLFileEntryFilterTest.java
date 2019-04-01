@@ -17,10 +17,17 @@ package com.liferay.document.library.change.tracking.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.change.tracking.CTEngineManager;
 import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
+import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
@@ -35,6 +42,8 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.service.test.ServiceTestUtil;
@@ -44,7 +53,10 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.After;
@@ -88,9 +100,7 @@ public class DLFileEntryFilterTest {
 	public void tearDown() throws Exception {
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 
-		_deleteCTCollections();
-
-		_ctEngineManager.disableChangeTracking(TestPropsValues.getCompanyId());
+		_dlFileCTTestHelper.tearDown();
 	}
 
 	@Test
@@ -171,6 +181,35 @@ public class DLFileEntryFilterTest {
 
 		Assert.assertEquals(
 			"Incorrect file title", "testfile.txt", fileProduction.getTitle());
+	}
+
+	@Test
+	public void testStructure() throws PortalException {
+		_checkoutProductionCt(_user1);
+
+		DLFileEntryType fileType =
+			_dlFileCTTestHelper.createFileTypeWithStructure(
+				_group, _user1.getUserId());
+
+		String updatedStructureDefinition =
+			_dlFileCTTestHelper.getStructureDefinitionTwoFields();
+
+		_ctEngineManager.checkoutCTCollection(
+			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
+
+		_updateStructure(fileType, updatedStructureDefinition);
+
+		List<DDMFormField> fields = _getStructureFields(fileType);
+
+		Assert.assertEquals(
+			"Incorrect quantity of form fields", 2, fields.size());
+
+		_checkoutProductionCt(_user1);
+
+		List<DDMFormField> fieldsProduction = _getStructureFields(fileType);
+
+		Assert.assertEquals(
+			"Incorrect quantity of form fields", 1, fieldsProduction.size());
 	}
 
 	@Test
@@ -261,19 +300,18 @@ public class DLFileEntryFilterTest {
 		return ctCollection;
 	}
 
-	private void _deleteCTCollections() throws PortalException {
-		List<CTCollection> ctCollections = _ctEngineManager.getCTCollections(
-			TestPropsValues.getCompanyId());
-
-		for (CTCollection c : ctCollections) {
-			_ctEngineManager.deleteCTCollection(c.getCtCollectionId());
-		}
-	}
-
 	private InputStream _getInputStream() {
 		String content = StringUtil.randomString();
 
 		return new ByteArrayInputStream(content.getBytes());
+	}
+
+	private Map<Locale, String> _getLocalized(String value) {
+		Map<Locale, String> map = new HashMap<>();
+
+		map.put(LocaleUtil.getDefault(), value);
+
+		return map;
 	}
 
 	private ServiceContext _getServiceContext(User user)
@@ -281,6 +319,44 @@ public class DLFileEntryFilterTest {
 
 		return ServiceContextTestUtil.getServiceContext(
 			_group.getGroupId(), user.getUserId());
+	}
+
+	private List<DDMFormField> _getStructureFields(DLFileEntryType fileType)
+		throws PortalException {
+
+		List<DDMStructure> structures = fileType.getDDMStructures();
+
+		Assert.assertEquals(
+			"Incorrect quantity of structures", 1, structures.size());
+
+		DDMStructure structure = structures.get(0);
+
+		DDMForm form = _ddm.getDDMForm(
+			_portal.getClassNameId(
+				com.liferay.dynamic.data.mapping.model.DDMStructure.class),
+			structure.getStructureId());
+
+		return form.getDDMFormFields();
+	}
+
+	private void _updateStructure(DLFileEntryType fileType, String definition)
+		throws PortalException {
+
+		List<DDMStructure> structures = fileType.getDDMStructures();
+
+		Assert.assertEquals(
+			"Incorrect quantity of structures", 1, structures.size());
+
+		DDMStructure structure = structures.get(0);
+
+		DDMForm updatedForm = _ddm.getDDMForm(definition);
+
+		_ddmStructureLocalService.updateStructure(
+			_user1.getUserId(), structure.getStructureId(),
+			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
+			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME),
+			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME), updatedForm,
+			_ddm.getDefaultDDMFormLayout(updatedForm), new ServiceContext());
 	}
 
 	private static final String _CT_COLLECTION_NAME = "CTCollection";
@@ -291,10 +367,22 @@ public class DLFileEntryFilterTest {
 	private CTEngineManager _ctEngineManager;
 
 	@Inject
+	private DDM _ddm;
+
+	@Inject
+	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Inject
 	private DLAppService _dlAppService;
+
+	@Inject
+	private DLFileCTTestHelper _dlFileCTTestHelper;
 
 	@DeleteAfterTestRun
 	private Group _group;
+
+	@Inject
+	private Portal _portal;
 
 	private User _user1;
 
