@@ -104,6 +104,35 @@ public class DLFileEntryFilterTest {
 	}
 
 	@Test
+	public void testFileWithSingleStructure() throws PortalException {
+		_checkoutProductionCt(_user1);
+
+		DLFileEntryType fileType =
+			_dlFileCTTestHelper.createFileTypeWithStructure(
+				_group, _user1.getUserId());
+
+		String updatedStructureDefinition =
+			_dlFileCTTestHelper.getStructureDefinitionTwoFields();
+
+		_ctEngineManager.checkoutCTCollection(
+			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
+
+		_updateStructure(fileType, updatedStructureDefinition);
+
+		List<DDMFormField> fields = _getStructureFields(fileType);
+
+		Assert.assertEquals(
+			"Incorrect quantity of form fields", 2, fields.size());
+
+		_checkoutProductionCt(_user1);
+
+		List<DDMFormField> fieldsProduction = _getStructureFields(fileType);
+
+		Assert.assertEquals(
+			"Incorrect quantity of form fields", 1, fieldsProduction.size());
+	}
+
+	@Test
 	public void testGetFileEntryProductionChangelistDoNotHavePendingChanges()
 		throws PortalException {
 
@@ -181,35 +210,6 @@ public class DLFileEntryFilterTest {
 
 		Assert.assertEquals(
 			"Incorrect file title", "testfile.txt", fileProduction.getTitle());
-	}
-
-	@Test
-	public void testStructure() throws PortalException {
-		_checkoutProductionCt(_user1);
-
-		DLFileEntryType fileType =
-			_dlFileCTTestHelper.createFileTypeWithStructure(
-				_group, _user1.getUserId());
-
-		String updatedStructureDefinition =
-			_dlFileCTTestHelper.getStructureDefinitionTwoFields();
-
-		_ctEngineManager.checkoutCTCollection(
-			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
-
-		_updateStructure(fileType, updatedStructureDefinition);
-
-		List<DDMFormField> fields = _getStructureFields(fileType);
-
-		Assert.assertEquals(
-			"Incorrect quantity of form fields", 2, fields.size());
-
-		_checkoutProductionCt(_user1);
-
-		List<DDMFormField> fieldsProduction = _getStructureFields(fileType);
-
-		Assert.assertEquals(
-			"Incorrect quantity of form fields", 1, fieldsProduction.size());
 	}
 
 	@Test

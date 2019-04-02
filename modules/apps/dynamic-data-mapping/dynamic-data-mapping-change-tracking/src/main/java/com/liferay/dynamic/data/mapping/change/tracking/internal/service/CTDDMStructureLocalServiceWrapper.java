@@ -20,6 +20,7 @@ import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.exception.CTEntryException;
 import com.liferay.change.tracking.exception.CTException;
 import com.liferay.change.tracking.model.CTEntry;
+import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -267,6 +268,20 @@ public class CTDDMStructureLocalServiceWrapper
 		return false;
 	}
 
+	// TODO Luiz Marins - I'm not sure about this. I couldn't
+	//  understand the idea of _isRetrievable
+
+	private boolean _isDLFileMetadata(DDMStructure ddmStructure) {
+		long dlFileMetadataClassId = _portal.getClassNameId(
+			DLFileEntryMetadata.class);
+
+		if (ddmStructure.getClassNameId() == dlFileMetadataClassId) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private boolean _isRetrievable(DDMStructure ddmStructure) {
 		if (ddmStructure == null) {
 			return false;
@@ -274,7 +289,8 @@ public class CTDDMStructureLocalServiceWrapper
 
 		if (!_ctEngineManager.isChangeTrackingEnabled(
 				ddmStructure.getCompanyId()) ||
-			_isBasicWebContent(ddmStructure)) {
+			_isBasicWebContent(ddmStructure) ||
+			_isDLFileMetadata(ddmStructure)) {
 
 			return true;
 		}
