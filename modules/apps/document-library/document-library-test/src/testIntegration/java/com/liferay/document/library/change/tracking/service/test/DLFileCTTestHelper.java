@@ -55,6 +55,8 @@ public class DLFileCTTestHelper {
 
 	public static final String FILE_TYPE_NAME = "Test Type";
 
+	public static final String STRUCTURE_KEY = "MY-KEY";
+
 	public FileEntry addFileEntry(DLFileEntryType fileType, Group group)
 		throws PortalException {
 
@@ -167,7 +169,7 @@ public class DLFileCTTestHelper {
 			0, Integer.MAX_VALUE);
 
 		for (DDMStructure s : structures) {
-			if (_STRUCTURE_KEY.equals(s.getStructureKey())) {
+			if (STRUCTURE_KEY.equals(s.getStructureKey())) {
 				_ddmStructureLocalService.deleteDDMStructure(s);
 			}
 		}
@@ -193,8 +195,6 @@ public class DLFileCTTestHelper {
 		"{\"availableLanguageIds\":[\"en_US\"],\"successPage\":{\"body\":" +
 			"{},\"title\":{},\"enabled\":false},\"defaultLanguageId\":" +
 				"\"en_US\",\"fields\":[%s]}";
-
-	private static final String _STRUCTURE_KEY = "MY-KEY";
 
 	private static final String _STRUCTURE_TEXT_FIELD =
 		"{\"indexType\":\"keyword\",\"repeatable\":false,\"dataType\":" +
