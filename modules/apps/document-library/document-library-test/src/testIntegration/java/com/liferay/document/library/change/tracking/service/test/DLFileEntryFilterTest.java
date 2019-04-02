@@ -17,6 +17,7 @@ package com.liferay.document.library.change.tracking.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.change.tracking.CTEngineManager;
 import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
@@ -26,7 +27,10 @@ import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
+import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
+import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -213,6 +217,41 @@ public class DLFileEntryFilterTest {
 	}
 
 	@Test
+	public void testGetStructureLatestVersion() throws PortalException {
+		_checkoutProductionCt(_user1);
+
+		com.liferay.dynamic.data.mapping.model.DDMStructure structure =
+			_addStructure();
+
+		_ctEngineManager.checkoutCTCollection(
+			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
+
+		_updateStructure(
+			structure.getStructureId(),
+			_dlFileCTTestHelper.getStructureDefinitionTwoFields());
+
+		DDMStructureVersion structureVersion =
+			_ddmStructureVersionLocalService.getLatestStructureVersion(
+				structure.getStructureId());
+
+		Assert.assertEquals(
+			"Incorrect structure definition",
+			_dlFileCTTestHelper.getStructureDefinitionTwoFields(),
+			structureVersion.getDefinition());
+
+		_checkoutProductionCt(_user1);
+
+		DDMStructureVersion structureVersionProduction =
+			_ddmStructureVersionLocalService.getLatestStructureVersion(
+				structure.getStructureId());
+
+		Assert.assertEquals(
+			"Incorrect structure definition",
+			_dlFileCTTestHelper.getStructureDefinitionOneField(),
+			structureVersionProduction.getDefinition());
+	}
+
+	@Test
 	public void testUsersDoNotSeeChangesOfEachOtherChangeList()
 		throws PortalException {
 
@@ -255,6 +294,23 @@ public class DLFileEntryFilterTest {
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			fileName, ContentTypes.TEXT_PLAIN, fileName, StringPool.BLANK,
 			StringPool.BLANK, _getInputStream(), 0, _getServiceContext(user));
+	}
+
+	private com.liferay.dynamic.data.mapping.model.DDMStructure _addStructure()
+		throws PortalException {
+
+		DDMForm form = _ddm.getDDMForm(
+			_dlFileCTTestHelper.getStructureDefinitionOneField());
+
+		return _ddmStructureLocalService.addStructure(
+			_user1.getUserId(), _group.getGroupId(),
+			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
+			_portal.getClassNameId(DLFileEntryMetadata.class),
+			DLFileCTTestHelper.STRUCTURE_KEY,
+			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME),
+			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME), form,
+			_ddm.getDefaultDDMFormLayout(form), StorageType.JSON.toString(),
+			DDMStructureConstants.TYPE_DEFAULT, new ServiceContext());
 	}
 
 	private void _assertUserFetchedFiles(User user, FileEntry fileEntry)
@@ -349,10 +405,16 @@ public class DLFileEntryFilterTest {
 
 		DDMStructure structure = structures.get(0);
 
+		_updateStructure(structure.getStructureId(), definition);
+	}
+
+	private void _updateStructure(long structureId, String definition)
+		throws PortalException {
+
 		DDMForm updatedForm = _ddm.getDDMForm(definition);
 
 		_ddmStructureLocalService.updateStructure(
-			_user1.getUserId(), structure.getStructureId(),
+			_user1.getUserId(), structureId,
 			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
 			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME),
 			_getLocalized(DLFileCTTestHelper.FILE_TYPE_NAME), updatedForm,
@@ -371,6 +433,9 @@ public class DLFileEntryFilterTest {
 
 	@Inject
 	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Inject
+	private DDMStructureVersionLocalService _ddmStructureVersionLocalService;
 
 	@Inject
 	private DLAppService _dlAppService;
