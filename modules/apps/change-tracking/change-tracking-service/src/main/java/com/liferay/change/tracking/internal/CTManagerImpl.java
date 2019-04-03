@@ -241,11 +241,24 @@ public class CTManagerImpl implements CTManager {
 		queryDefinition.setOrderByComparator(new CTEntryCreateDateComparator());
 		queryDefinition.setStart(0);
 
-		List<CTEntry> ctEntries = getModelChangeCTEntries(
-			userId, resourcePrimKey, queryDefinition);
+		Optional<CTCollection> ctCollectionOptional =
+			getActiveCTCollectionOptional(userId);
+
+		List<CTEntry> ctEntries = _getModelChangeCTEntries(
+			resourcePrimKey, queryDefinition, ctCollectionOptional);
 
 		if (ListUtil.isEmpty(ctEntries)) {
-			return Optional.empty();
+			ctCollectionOptional =
+				_ctEngineManager.getProductionCTCollectionOptional(companyId);
+
+			ctEntries = _getModelChangeCTEntries(
+				resourcePrimKey, queryDefinition, ctCollectionOptional);
+
+			if (ListUtil.isEmpty(ctEntries)) {
+				return Optional.empty();
+			}
+
+			return Optional.of(ctEntries.get(0));
 		}
 
 		return Optional.of(ctEntries.get(0));
@@ -272,14 +285,8 @@ public class CTManagerImpl implements CTManager {
 		Optional<CTCollection> ctCollectionOptional =
 			getActiveCTCollectionOptional(userId);
 
-		long ctCollectionId = ctCollectionOptional.map(
-			CTCollection::getCtCollectionId
-		).orElse(
-			0L
-		);
-
-		return _ctEntryLocalService.fetchCTEntries(
-			ctCollectionId, resourcePrimKey, queryDefinition);
+		return _getModelChangeCTEntries(
+			resourcePrimKey, queryDefinition, ctCollectionOptional);
 	}
 
 	@Override
@@ -642,6 +649,20 @@ public class CTManagerImpl implements CTManager {
 
 		return _ctEntryLocalService.fetchCTEntry(
 			ctCollectionId, modelClassNameId, modelClassPK);
+	}
+
+	private List<CTEntry> _getModelChangeCTEntries(
+		long resourcePrimKey, QueryDefinition<CTEntry> queryDefinition,
+		Optional<CTCollection> ctCollectionOptional) {
+
+		long ctCollectionId = ctCollectionOptional.map(
+			CTCollection::getCtCollectionId
+		).orElse(
+			0L
+		);
+
+		return _ctEntryLocalService.fetchCTEntries(
+			ctCollectionId, resourcePrimKey, queryDefinition);
 	}
 
 	private Optional<CTEntry> _registerModelChange(

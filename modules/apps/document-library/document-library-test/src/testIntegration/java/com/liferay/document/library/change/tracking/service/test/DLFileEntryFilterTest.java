@@ -97,7 +97,7 @@ public class DLFileEntryFilterTest {
 
 		_ctCollectionUser1 = _createCtCollection(_user1);
 
-		_createCtCollection(_user2);
+		_ctCollectionUser2 = _createCtCollection(_user2);
 	}
 
 	@After
@@ -147,11 +147,7 @@ public class DLFileEntryFilterTest {
 		_ctEngineManager.checkoutCTCollection(
 			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
 
-		_dlAppService.updateFileEntry(
-			fileEntry.getFileEntryId(), "file.txt", fileEntry.getMimeType(),
-			"testfile updated.txt", StringPool.BLANK, StringPool.BLANK,
-			DLVersionNumberIncrease.MAJOR, _getInputStream(), 0,
-			_getServiceContext(_user1));
+		_updateFile(fileEntry);
 
 		List<Object> filesCollection1 =
 			DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcuts(
@@ -194,11 +190,7 @@ public class DLFileEntryFilterTest {
 		_ctEngineManager.checkoutCTCollection(
 			_user1.getUserId(), _ctCollectionUser1.getCtCollectionId());
 
-		_dlAppService.updateFileEntry(
-			fileEntry.getFileEntryId(), "file.txt", fileEntry.getMimeType(),
-			"testfile updated.txt", StringPool.BLANK, StringPool.BLANK,
-			DLVersionNumberIncrease.MAJOR, _getInputStream(), 0,
-			_getServiceContext(_user1));
+		_updateFile(fileEntry);
 
 		FileEntry fileCollection1 = _dlAppService.getFileEntry(
 			fileEntry.getFileEntryId());
@@ -424,6 +416,8 @@ public class DLFileEntryFilterTest {
 	private static final String _CT_COLLECTION_NAME = "CTCollection";
 
 	private CTCollection _ctCollectionUser1;
+
+	private CTCollection _ctCollectionUser2;
 
 	@Inject
 	private CTEngineManager _ctEngineManager;
